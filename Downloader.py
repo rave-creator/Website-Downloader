@@ -902,6 +902,7 @@ class BypassEngine:
         Fully autonomous: detects WAF, escalates strategy, rotates proxy,
         adapts delay, persists cookies — all automatically.
         """
+        from yarl import URL
         domain = urlparse(url).netloc
         state  = self._get_state(domain)
         self._req_count += 1
@@ -1018,8 +1019,8 @@ class BypassEngine:
             )
             timeout = aiohttp.ClientTimeout(
                 total=timeout_total,
-                connect=min(12, timeout_total * 0.4),
-                sock_read=min(25, timeout_total * 0.7),
+                connect=min(12.0, timeout_total * 0.4),
+                sock_read=min(25.0, timeout_total * 0.7),
             )
 
             try:
@@ -1816,7 +1817,7 @@ class DownloadEngine:
             target=self.target,
             mode=self.mode,
             start_time=time.time(),
-            concurrency=self.cfg["concurrent"] # Initialize concurrency
+            concurrency=int(self.cfg["concurrent"]) # Initialize concurrency
         )
         folder = f"{urlparse(self.target).netloc}_{U.stamp()}"
         self.session.output_dir = ARCH / folder
@@ -1945,7 +1946,10 @@ class DownloadEngine:
                 ext = Path(urlparse(url).path).suffix or ".html"
                 if not ext.startswith("."): ext = ".html"
                 if len(ext) > 10: ext = ".html"
-                fallback = self.session.output_dir / f"_{hashlib.md5(url.encode()).hexdigest()[:12]}{ext}"
+                hash_full = hashlib.md5(url.encode()).hexdigest()
+                hash_short = ""
+                for i in range(12): hash_short += hash_full[i]
+                fallback = self.session.output_dir / f"_{hash_short}{ext}"
                 fallback.write_bytes(body)
                 filepath = fallback
             except Exception as fe:
@@ -2442,13 +2446,11 @@ def _make_live_layout(intel: TargetIntel, session: ArchiveSession, pulse: System
     intel_text = Text.from_markup("\n")
     if intel:
         waf_name = intel.waf_detected if intel.waf_detected else "[dim]None[/]"
-        intel_text.append_text(Text.from_markup(f"""
-            [#FF00FF]WAF/CDN:[/]   [bold white]{waf_name}[/]
-            [#00FFFF]CMS/Stack:[/] {intel.cms}
-            """,
-            f"[#00FFFF]CMS/Stack:[/] {intel.cms}" if intel.cms else "[#00FFFF]CMS/Stack:[/] [dim]Unknown[/]",
-            "",
-            "[bold dim]Tech Stack:[/]"
+        cms_disp = intel.cms if intel.cms else "[dim]Unknown[/]"
+        intel_text.append_text(Text.from_markup(
+            f"  [#FF00FF]WAF/CDN:[/]   [bold white]{waf_name}[/]\n"
+            f"  [#00FFFF]CMS/Stack:[/] {cms_disp}\n\n"
+            "  [bold dim]Tech Stack:[/]"
         ))
         for t in intel.technologies[:4]:
             intel_text.append_text(Text.from_markup(f"\n  [dim]•[/] {t}"))
