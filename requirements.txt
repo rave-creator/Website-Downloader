@@ -1,2 +1,26 @@
-requests
-colorama
+# ==========================================
+# NEXUS CORE v8.0 - SOVEREIGN EDITION
+# DEPENDENCIES MANIFEST
+# ==========================================
+
+# ── Core HTTP & Async Engine ────────────
+aiohttp>=3.9.0
+requests>=2.31.0
+
+# ── Terminal UI & Feedback ──────────────
+rich>=13.7.0
+tqdm>=4.66.0
+
+# ── OSINT & Scraping ────────────────────
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+python-Wappalyzer>=0.3.1
+dnspython>=2.4.0
+
+# ── Security, Crypto & Bypass ───────────
+cryptography>=41.0.0
+fake-useragent>=1.4.0
+curl-cffi>=0.5.10
+
+# ── System Metrics ──────────────────────
+psutil>=5.9.0
